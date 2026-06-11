@@ -1,0 +1,80 @@
+from kivy.app import App
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.label import Label
+from kivy.uix.button import Button
+from kivy.uix.scrollview import ScrollView
+from kivy.utils import platform
+from kivy.clock import Clock
+
+class PanelTactico(BoxLayout):
+    def __init__(self, **kwargs):
+        super().__init__(orientation='vertical', padding=15, spacing=10, **kwargs)
+        
+        # Encabezado estilo Búnker
+        self.add_widget(Label(
+            text="🛡️ AVI GUARDIÁN v1.0", 
+            font_size='24sp', 
+            color=(0.13, 0.52, 0.22, 1), # Verde Éxito
+            bold=True,
+            size_hint_y=None, 
+            height=50
+        ))
+        
+        self.status_label = Label(
+            text="Estado: ESPERANDO NÚCLEO...", 
+            font_size='16sp',
+            size_hint_y=None, 
+            height=30
+        )
+        self.add_widget(self.status_label)
+        
+        # Consola de Monitoreo
+        self.scroll = ScrollView(size_hint=(1, 1))
+        self.console_text = Label(
+            text="[SISTEMA] Iniciando interfaz visual...\n", 
+            font_name="Roboto", 
+            font_size='12sp',
+            halign="left", 
+            valign="top",
+            size_hint_y=None
+        )
+        self.console_text.bind(texture_size=self.console_text.setter('size'))
+        self.scroll.add_widget(self.console_text)
+        self.add_widget(self.scroll)
+        
+        # Botón de Arranque Forzado
+        self.btn_activar = Button(
+            text="ACTIVAR ESCUDO DE FONDO", 
+            background_color=(0.13, 0.52, 0.22, 1),
+            size_hint_y=None, 
+            height=60,
+            font_size='16sp',
+            bold=True
+        )
+        self.btn_activar.bind(on_press=self.iniciar_servicio_nativo)
+        self.add_widget(self.btn_activar)
+        
+        # Hilo de actualización automática para revisar alertas
+        Clock.schedule_interval(self.actualizar_consola, 2.0)
+
+    def iniciar_servicio_nativo(self, instance):
+        if platform == 'android':
+            from android import AndroidService
+            # Inicia el archivo service.py de manera oculta de fondo
+            service = AndroidService('Avi Guardian Radar', 'Ejecutando escudo en tiempo real')
+            service.start('service.py')
+            self.status_label.text = "Estado: 🟢 ESCUDO ACTIVO (SEGUNDO PLANO)"
+            self.console_text.text += "[SISTEMA] Servicio Android desplegado con éxito.\n"
+        else:
+            self.console_text.text += "[AVISO] Servicio nativo solo disponible en formato APK de Android.\n"
+
+    def actualizar_consola(self, dt):
+        # Aquí la UI puede leer reportes temporales guardados en el almacenamiento interno
+        pass
+
+class AviGuardianApp(App):
+    def build(self):
+        return PanelTactico()
+
+if __name__ == '__main__':
+    AviGuardianApp().run()

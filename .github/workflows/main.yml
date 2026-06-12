@@ -1,0 +1,22 @@
+name: Build Android APK
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libssl-dev libffi-dev cmake
+          pip install --upgrade buildozer cython
+      - name: Build with Buildozer
+        run: |
+          buildozer init
+          # Forzamos la creación del APK
+          yes | buildozer -v android debug
+      - name: Upload APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: Mi_App_APK
+          path: bin/*.apk
